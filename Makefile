@@ -42,6 +42,10 @@ BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
+APP_TITLE   :=  Phalk Profiles
+APP_VERSION :=  1.0
+APP_AUTHOR  :=  Phalk
+
 #ROMFS	:=	romfs
 
 #---------------------------------------------------------------------------------
