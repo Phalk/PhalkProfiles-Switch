@@ -2,6 +2,7 @@
 
 [![Switch Homebrew](https://img.shields.io/badge/Platform-Nintendo%20Switch-red.svg?style=flat-square)](https://github.com/devkitPro/libnx)
 [![Language](https://img.shields.io/badge/Language-C%2B%2B-blue.svg?style=flat-square)](https://en.cppreference.com/)
+[![JSON](https://img.shields.io/badge/JSON-nlohmann-orange.svg?style=flat-square)](https://github.com/nlohmann/json)
 
 A lightweight Homebrew application (`.nro`) for hacked Nintendo Switch consoles that acts as the local client for the **Phalk Profiles** web ecosystem.
 
