@@ -42,11 +42,16 @@ BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
+ROMFS		:=	romfs
+SYSMODULE	?=	0
 APP_TITLE   :=  Phalk Profiles
-APP_VERSION :=  1.0
+APP_VERSION :=  1.2
 APP_AUTHOR  :=  Phalk
 
-#ROMFS	:=	romfs
+ifeq ($(SYSMODULE),1)
+CONFIG_JSON := sysmodule.json
+endif
+
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -54,16 +59,20 @@ APP_AUTHOR  :=  Phalk
 ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
-			$(ARCH) $(DEFINES) `curl-config --cflags`
+			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 
+ifeq ($(SYSMODULE),1)
+CXXFLAGS	+= -DPHALK_SYSMODULE
+endif
+
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `curl-config --libs`
+LIBS	:= -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -117,6 +126,9 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
+ifeq ($(SYSMODULE),1)
+	export APP_JSON := $(TOPDIR)/$(CONFIG_JSON)
+else
 ifeq ($(strip $(CONFIG_JSON)),)
 	jsons := $(wildcard *.json)
 	ifneq (,$(findstring $(TARGET).json,$(jsons)))
@@ -128,6 +140,7 @@ ifeq ($(strip $(CONFIG_JSON)),)
 	endif
 else
 	export APP_JSON := $(TOPDIR)/$(CONFIG_JSON)
+endif
 endif
 
 ifeq ($(strip $(ICON)),)
@@ -159,10 +172,13 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all
+.PHONY: $(BUILD) clean all sysmodule
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
+
+sysmodule:
+	@$(MAKE) --no-print-directory SYSMODULE=1 BUILD=build-sysmodule
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
@@ -171,10 +187,14 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
+ifeq ($(SYSMODULE),1)
+	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).nso $(TARGET).npdm $(TARGET).elf
+else
 ifeq ($(strip $(APP_JSON)),)
 	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 else
 	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).nso $(TARGET).npdm $(TARGET).elf
+endif
 endif
 
 
