@@ -487,6 +487,12 @@ static bool fileExists(const char* path)
     return stat(path, &st) == 0 && S_ISREG(st.st_mode);
 }
 
+static bool readableFile(const char* path)
+{
+    std::ifstream file(path, std::ios::binary);
+    return file.good();
+}
+
 static bool sameFile(const char* first, const char* second)
 {
     std::ifstream a(first, std::ios::binary);
@@ -495,15 +501,18 @@ static bool sameFile(const char* first, const char* second)
         return false;
 
     char abuf[4096], bbuf[4096];
-    while (a && b) {
+    while (true) {
         a.read(abuf, sizeof(abuf));
         b.read(bbuf, sizeof(bbuf));
         const std::streamsize ac = a.gcount();
         const std::streamsize bc = b.gcount();
-        if (ac != bc || !std::equal(abuf, abuf + ac, bbuf))
+        if (ac != bc)
+            return false;
+        if (ac == 0)
+            return true;
+        if (!std::equal(abuf, abuf + ac, bbuf))
             return false;
     }
-    return a.eof() && b.eof();
 }
 
 static bool copyFile(const char* source, const char* destination)
@@ -520,7 +529,9 @@ static bool copyFile(const char* source, const char* destination)
         if (count > 0)
             out.write(buffer, count);
     }
-    return in.eof() && out.good();
+    // Some devoptab-backed streams do not expose eof() consistently after the
+    // final read. The destination stream is the authoritative result here.
+    return out.good();
 }
 
 static bool prepareSysmoduleDirectory()
@@ -536,12 +547,15 @@ static bool prepareSysmoduleDirectory()
 
 static bool sysmoduleInstalled()
 {
-    return fileExists(SYS_EXEFS_PATH) && sameFile(SYSMODULE_SOURCE_PATH, SYS_EXEFS_PATH);
+    return fileExists(SYS_EXEFS_PATH) && readableFile(SYSMODULE_SOURCE_PATH)
+        && sameFile(SYSMODULE_SOURCE_PATH, SYS_EXEFS_PATH);
 }
 
 static bool installSysmodule()
 {
-    if (!fileExists(SYSMODULE_SOURCE_PATH) || !fileExists(TOOLBOX_SOURCE_PATH))
+    // RomFS files are accessed through libnx's devoptab. Use stream reads for
+    // RomFS instead of stat(), which is not reliable for every devoptab mount.
+    if (!readableFile(SYSMODULE_SOURCE_PATH) || !readableFile(TOOLBOX_SOURCE_PATH))
         return false;
 
     prepareSysmoduleDirectory();
