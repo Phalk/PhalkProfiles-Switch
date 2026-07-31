@@ -1,39 +1,72 @@
-# Phalk Profiles for Nintendo Switch (Client App)
+# Phalk Profiles for Nintendo Switch
 
 [![Switch Homebrew](https://img.shields.io/badge/Platform-Nintendo%20Switch-red.svg?style=flat-square)](https://github.com/devkitPro/libnx)
 [![Language](https://img.shields.io/badge/Language-C%2B%2B-blue.svg?style=flat-square)](https://en.cppreference.com/)
 [![JSON](https://img.shields.io/badge/JSON-nlohmann-orange.svg?style=flat-square)](https://github.com/nlohmann/json)
 
-A lightweight Homebrew application (`.nro`) for Nintendo Switch consoles that acts as the local client for the **Phalk Profiles**.
+Phalk Profiles is a lightweight Nintendo Switch homebrew client for [phalk.net/profiles](https://www.phalk.net/profiles/).
 
-This application extracts playtime data across all local profiles, structures it into JSON format, and uploads it to your [phalk.net/profiles](https://www.phalk.net/profiles/) account.
+It exports playtime data for all local profiles, generates a JSON file and uploads it to the user's Phalk Profiles account.
 
----
+## Requirements
 
-## Prerequisites & Requirements
+1. A Nintendo Switch running Atmosphère.
+2. An active internet connection.
+3. An account registered at [phalk.net/profiles](https://www.phalk.net/profiles/).
 
-1. A Nintendo Switch console running custom firmware (Atmosphère).
-2. Internet connection active on the console (ensure you are using proper protection such as **90DNS** or **Exosphere/DNS MITM** to avoid Nintendo CDN bans).
-3. An active account registered at [phalk.net/profiles](https://www.phalk.net/profiles/).
+## Installation
 
----
+Copy the NRO file to your switch homebrew folder. Example:
 
-## Installation & Setup Guide
-
-### Step 1: Extract the contents from the zip file in the root of your Switch SD Card
 ```text
-sdmc:/switch/PhalkProfiles/PhalkProfiles.nro
-````
+sdmc:/switch/PhalkProfiles/PhalkProfiles.NRO
+```
 
-### Step 2: On your Nintendo Switch, launch the NRO file
+The sysmodule is included inside the NRO's RomFS.
+Launch `PhalkProfiles.NRO` through hbmenu or another homebrew launcher.
+
+## First-time setup
+
+1. Open `PhalkProfiles`.
+2. Select `Set username` and enter your Phalk Profiles username.
+3. Select `Set password` and enter your password.
+4. Select `Export & upload`.
+
+The status header uses these states:
+
 ```text
-You can launch the application using hbmenu or your favorite hb launcher.
-````
+[ Status: Ready ]
+[ Status: Uploading ]
+[ Status: Success! ]
+[ Status: Upload failed... ]
+```
 
-## How to Use
-1. Turn on your Nintendo Switch and ensure it is connected to the Internet.
-2. Launch the Homebrew Menu (hbg) either through the Album app or by holding the [R] shoulder button while launching a retail game (Title Redirection mode).
-3. Find and select Phalk Profiles from your app list.
-4. The command-line interface will load, showing your current username and masked password status read from the config file.
-5. Press the [R] button on your controller to initiate the Export & Upload sequence.
-6. Watch the status log on the screen. Once it shifts to ```Data uploaded successfully!```, your public web profile will instantly reflect your local Switch playtimes.
+## Automatic uploads
+The app can also install a sysmodule for automatic data upload.
+After the sysmodule is enabled (you can do it inside the app), Phalk Profiles watches for the current game to close. When the game exits, it exports the latest playtime data and uploads it automatically.
+
+- `Install & enable sysmodule` — installs and enables it when it is missing.
+- `Disable & remove sysmodule` — disables and removes it.
+
+After installing, enabling, disabling or removing the sysmodule, restart Atmosphère for the change to take effect.
+
+## Configuration and exported data
+
+Credentials are stored at:
+
+```text
+sdmc:/config/PhalkProfiles/config.txt
+```
+
+The latest exported JSON is written to:
+
+```text
+sdmc:/switch/PhalkProfiles/export.json
+```
+
+The background sysmodule log is written to:
+
+```text
+sdmc:/switch/PhalkProfiles/sysmodule.log
+```
+
